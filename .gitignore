@@ -1,3 +1,4 @@
+.vscode/
 /.env
 /alertmanager-bot
 /deployments/examples/data

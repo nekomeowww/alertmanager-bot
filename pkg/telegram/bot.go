@@ -37,8 +37,8 @@ const (
 		"要求 Alertmanager 的一个管理员添加一个 webhook，并把 `/webhooks/telegram/%d` 作为 URL."
 
 	responseStartPrivate = "好的哦，%s 。这边将会向你推送最新的状态！\n" + CommandHelp
-	responseStartGroup   = "没问题呢！这边之后都不会向你推送信息了。\n" + CommandHelp
-	responseStop         = "好的，%s ！我都不会给你再发消息了\n" + CommandHelp
+	responseStartGroup   = "好的哦，这边将会在群组推送最新的状态！\n" + CommandHelp
+	responseStop         = "好的！这边之后都不会推送信息了。\n" + CommandHelp
 	ResponseHelp         = `
 我是一个用于 Telegram 的 Prometheus AlertManager Bot。将会通知你有关告警的信息。
 你也可以向我询问 ` + CommandStatus + `, ` + CommandAlerts + ` & ` + CommandSilences + `
@@ -336,13 +336,20 @@ func (b *Bot) handleStart(message *telebot.Message) error {
 		"chat_id", message.Chat.ID,
 	)
 
-	if message.Chat.Type == telebot.ChatPrivate {
+	switch message.Chat.Type {
+	case telebot.ChatPrivate:
 		_, err := b.telegram.Send(message.Chat, fmt.Sprintf(responseStartPrivate, message.Sender.FirstName))
 		return err
-	} else {
+	case telebot.ChatGroup:
+	case telebot.ChatSuperGroup:
 		_, err := b.telegram.Send(message.Chat, responseStartGroup)
 		return err
+	default:
+		_, err := b.telegram.Send(message.Chat, "对不起，无法把该聊天加入订阅列表。")
+		return err
 	}
+
+	return nil
 }
 
 func (b *Bot) handleStop(message *telebot.Message) error {
@@ -381,10 +388,11 @@ func (b *Bot) handleChats(message *telebot.Message) error {
 
 	list := ""
 	for _, chat := range chats {
-		if chat.Type == telebot.ChatGroup {
-			list = list + fmt.Sprintf("@%s\n", chat.Title)
-		} else {
+		if chat.Type == telebot.ChatPrivate {
 			list = list + fmt.Sprintf("@%s\n", chat.Username)
+		} else if chat.Type == telebot.ChatGroup || chat.Type == telebot.ChatSuperGroup {
+			fmt.Printf("%+v", chat)
+			list = list + fmt.Sprintf("@%s\n", chat.Title)
 		}
 	}
 

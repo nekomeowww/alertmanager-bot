@@ -2,7 +2,7 @@
 
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/metalmatze/alertmanager-bot.svg?maxAge=604800)](https://hub.docker.com/r/metalmatze/alertmanager-bot)
-[![Go Report Card](https://goreportcard.com/badge/github.com/metalmatze/alertmanager-bot)](https://goreportcard.com/report/github.com/metalmatze/alertmanager-bot)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nekomeowww/alertmanager-bot)](https://goreportcard.com/report/github.com/nekomeowww/alertmanager-bot)
 
 
 This is the [Alertmanager](https://prometheus.io/docs/alerting/alertmanager/) bot for
@@ -279,7 +279,7 @@ If you prefer using configuration management systems (like Ansible) you might be
 
 ### Build from source
 
-`GO111MODULE=on go get github.com/metalmatze/alertmanager-bot/cmd/alertmanager-bot`
+`GO111MODULE=on go get github.com/nekomeowww/alertmanager-bot/cmd/alertmanager-bot`
 
 ### Configuration
 

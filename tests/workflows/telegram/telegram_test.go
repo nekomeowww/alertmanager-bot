@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/metalmatze/alertmanager-bot/pkg/alertmanager"
-	"github.com/metalmatze/alertmanager-bot/pkg/telegram"
+	"github.com/nekomeowww/alertmanager-bot/pkg/alertmanager"
+	"github.com/nekomeowww/alertmanager-bot/pkg/telegram"
 	"github.com/prometheus/alertmanager/notify/webhook"
 	"github.com/prometheus/alertmanager/template"
 	"github.com/stretchr/testify/require"

@@ -3,8 +3,8 @@ package telegram
 import (
 	"time"
 
-	"github.com/metalmatze/alertmanager-bot/pkg/alertmanager"
-	"github.com/metalmatze/alertmanager-bot/pkg/telegram"
+	"github.com/nekomeowww/alertmanager-bot/pkg/alertmanager"
+	"github.com/nekomeowww/alertmanager-bot/pkg/telegram"
 	"gopkg.in/tucnak/telebot.v2"
 )
 

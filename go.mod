@@ -1,4 +1,4 @@
-module github.com/metalmatze/alertmanager-bot
+module github.com/nekomeowww/alertmanager-bot
 
 require (
 	cloud.google.com/go v0.77.0 // indirect

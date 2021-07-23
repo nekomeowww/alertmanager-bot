@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	"github.com/metalmatze/alertmanager-bot/pkg/telegram"
+	"github.com/nekomeowww/alertmanager-bot/pkg/telegram"
 	"gopkg.in/tucnak/telebot.v2"
 )
 

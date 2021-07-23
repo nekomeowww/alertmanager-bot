@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/hako/durafmt"
-	"github.com/metalmatze/alertmanager-bot/pkg/alertmanager"
+	"github.com/nekomeowww/alertmanager-bot/pkg/alertmanager"
 	"github.com/oklog/run"
 	"github.com/pkg/errors"
 	"github.com/prometheus/alertmanager/api/v2/models"
@@ -33,24 +33,24 @@ const (
 	CommandAlerts   = "/alerts"
 	CommandSilences = "/silences"
 
-	responseAlertsNotConfigured = "This chat hasn't been setup to receive any alerts yet... 😕\n\n" +
-		"Ask an administrator of the Alertmanager to add a webhook with `/webhooks/telegram/%d` as URL."
+	responseAlertsNotConfigured = "该聊天当前还没有配置好来接收警报... 😕\n\n" +
+		"要求 Alertmanager 的一个管理员添加一个 webhook，并把 `/webhooks/telegram/%d` 作为 URL."
 
-	responseStartPrivate = "Hey, %s! I will now keep you up to date!\n" + CommandHelp
-	responseStartGroup   = "Hey! I will now keep you all up to date!\n" + CommandHelp
-	responseStop         = "Alright, %s! I won't talk to you again.\n" + CommandHelp
+	responseStartPrivate = "好的哦，%s 。这边将会向你推送最新的状态！\n" + CommandHelp
+	responseStartGroup   = "没问题呢！这边之后都不会向你推送信息了。\n" + CommandHelp
+	responseStop         = "好的，%s ！我都不会给你再发消息了\n" + CommandHelp
 	ResponseHelp         = `
-I'm a Prometheus AlertManager Bot for Telegram. I will notify you about alerts.
-You can also ask me about my ` + CommandStatus + `, ` + CommandAlerts + ` & ` + CommandSilences + `
+我是一个用于 Telegram 的 Prometheus AlertManager Bot。将会通知你有关告警的信息。
+你也可以向我询问 ` + CommandStatus + `, ` + CommandAlerts + ` & ` + CommandSilences + `
 
-Available commands:
-` + CommandStart + ` - Subscribe for alerts.
-` + CommandStop + ` - Unsubscribe for alerts.
-` + CommandStatus + ` - Print the current status.
-` + CommandAlerts + ` - List all alerts.
-` + CommandSilences + ` - List all silences.
-` + CommandChats + ` - List all users and group chats that subscribed.
-` + CommandID + ` - Send the senders Telegram ID (works for all Telegram users).
+可用的命令: 
+` + CommandStart + ` - 订阅告警
+` + CommandStop + ` - 取消订阅告警
+` + CommandStatus + ` - 打印当前状态
+` + CommandAlerts + ` - 列出所有告警
+` + CommandSilences + ` - 列出所有屏蔽告警
+` + CommandChats + ` - 列出所有订阅告警的联系人和群组
+` + CommandID + ` - 发送发送者的 Telegram ID（适用于所有 Telegram 用户）。
 `
 )
 
@@ -325,7 +325,7 @@ func (b *Bot) middleware(next func(*telebot.Message) error) func(*telebot.Messag
 func (b *Bot) handleStart(message *telebot.Message) error {
 	if err := b.chats.Add(message.Chat); err != nil {
 		level.Warn(b.logger).Log("msg", "failed to add chat to chat store", "err", err)
-		_, err = b.telegram.Send(message.Chat, "I can't add this chat to the subscribers list.")
+		_, err = b.telegram.Send(message.Chat, "对不起，无法把该聊天加入订阅列表。")
 		return err
 	}
 
@@ -348,7 +348,7 @@ func (b *Bot) handleStart(message *telebot.Message) error {
 func (b *Bot) handleStop(message *telebot.Message) error {
 	if err := b.chats.Remove(message.Chat); err != nil {
 		level.Warn(b.logger).Log("msg", "failed to remove chat from chat store", "err", err)
-		_, err = b.telegram.Send(message.Chat, "I can't remove this chat from the subscribers list.")
+		_, err = b.telegram.Send(message.Chat, "对不起，无法把该聊天从订阅列表中移除")
 		return err
 	}
 
@@ -370,12 +370,12 @@ func (b *Bot) handleChats(message *telebot.Message) error {
 	chats, err := b.chats.List()
 	if err != nil {
 		level.Warn(b.logger).Log("msg", "failed to list chats from chat store", "err", err)
-		_, err = b.telegram.Send(message.Chat, "I can't list the subscribed chats.")
+		_, err = b.telegram.Send(message.Chat, "对不起，没办法列出所有订阅列表")
 		return err
 	}
 
 	if len(chats) == 0 {
-		_, err = b.telegram.Send(message.Chat, "Currently no one is subscribed.")
+		_, err = b.telegram.Send(message.Chat, "当前还没有人订阅过")
 		return err
 	}
 
@@ -388,17 +388,17 @@ func (b *Bot) handleChats(message *telebot.Message) error {
 		}
 	}
 
-	_, err = b.telegram.Send(message.Chat, "Currently these chat have subscribed:\n"+list)
+	_, err = b.telegram.Send(message.Chat, "当前有以下聊天订阅了: \n"+list)
 	return err
 }
 
 func (b *Bot) handleID(message *telebot.Message) error {
 	if message.Private() {
-		_, err := b.telegram.Send(message.Chat, fmt.Sprintf("Your ID is %d", message.Sender.ID))
+		_, err := b.telegram.Send(message.Chat, fmt.Sprintf("你的 ID 是: %d", message.Sender.ID))
 		return err
 	}
 
-	_, err := b.telegram.Send(message.Chat, fmt.Sprintf("Your ID is %d\nChat ID is %d", message.Sender.ID, message.Chat.ID))
+	_, err := b.telegram.Send(message.Chat, fmt.Sprintf("你的 ID 是 %d\n聊天 ID 是 %d", message.Sender.ID, message.Chat.ID))
 	return err
 }
 
@@ -406,7 +406,7 @@ func (b *Bot) handleStatus(message *telebot.Message) error {
 	status, err := b.alertmanager.Status(context.TODO())
 	if err != nil {
 		level.Warn(b.logger).Log("msg", "failed to get status", "err", err)
-		_, err = b.telegram.Send(message.Chat, fmt.Sprintf("failed to get status... %v", err))
+		_, err = b.telegram.Send(message.Chat, fmt.Sprintf("获取状态失败... %v", err))
 		return err
 	}
 
@@ -416,7 +416,7 @@ func (b *Bot) handleStatus(message *telebot.Message) error {
 	_, err = b.telegram.Send(
 		message.Chat,
 		fmt.Sprintf(
-			"*AlertManager*\nVersion: %s\nUptime: %s\n*AlertManager Bot*\nVersion: %s\nUptime: %s",
+			"*AlertManager*\n版本: %s\n运行时间: %s\n*AlertManager Bot*\n版本: %s\n运行时间: %s",
 			*status.VersionInfo.Version,
 			uptime,
 			b.revision,
@@ -431,7 +431,7 @@ func (b *Bot) handleAlerts(message *telebot.Message) error {
 	status, err := b.alertmanager.Status(context.TODO())
 	if err != nil {
 		level.Warn(b.logger).Log("msg", "failed to get status with config", "err", err)
-		_, err = b.telegram.Send(message.Chat, fmt.Sprintf("failed to list alerts... %v", err))
+		_, err = b.telegram.Send(message.Chat, fmt.Sprintf("列出告警失败... %v", err))
 		return err
 	}
 
@@ -449,12 +449,12 @@ func (b *Bot) handleAlerts(message *telebot.Message) error {
 	alerts, err := b.alertmanager.ListAlerts(context.TODO(), receiver, silenced)
 	if err != nil {
 		level.Warn(b.logger).Log("msg", "failed to list alerts", "err", err)
-		_, err = b.telegram.Send(message.Chat, fmt.Sprintf("failed to list alerts... %v", err))
+		_, err = b.telegram.Send(message.Chat, fmt.Sprintf("列出告警失败... %v", err))
 		return err
 	}
 
 	if len(alerts) == 0 {
-		_, err = b.telegram.Send(message.Chat, "No alerts right now! 🎉")
+		_, err = b.telegram.Send(message.Chat, "当前没有告警！ 🎉")
 		return err
 	}
 
@@ -501,12 +501,12 @@ func receiverFromConfig(c string, id int64) (string, error) {
 func (b *Bot) handleSilences(message *telebot.Message) error {
 	silences, err := b.alertmanager.ListSilences(context.TODO())
 	if err != nil {
-		_, err = b.telegram.Send(message.Chat, fmt.Sprintf("failed to list silences... %v", err))
+		_, err = b.telegram.Send(message.Chat, fmt.Sprintf("列出屏蔽告警失败... %v", err))
 		return err
 	}
 
 	if len(silences) == 0 {
-		_, err = b.telegram.Send(message.Chat, "No silences right now.")
+		_, err = b.telegram.Send(message.Chat, "当前没有已屏蔽的告警")
 		return err
 	}
 
